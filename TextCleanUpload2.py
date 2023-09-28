@@ -11,6 +11,7 @@ import seaborn as sns
 from pandas import DataFrame
 import numpy as np
 
+
 # DEFAULT FLASK AND SWAGGER DEFAULT SETTING
 app = Flask(__name__)
 
@@ -129,8 +130,13 @@ def text_processing_file ():
         old = df['Tweet'].iloc[i]
         new = df['cleaned_tweet'].iloc[i]
         
-        conn=sqlite3.connect('binar_gold1.db',timeout=500)   
-        conn.execute("insert into tbl_textClean1 (textOri,textClean) values (?,?)",(old, new))
+        conn=sqlite3.connect('binar_gold1.db',timeout=500)
+
+        # cek/validasi apakah data sudah ada di tabel tbl_textclean1
+        dfCek = pd.read_sql_query("select textClean from tbl_textClean1 where textClean = '"+new+"'", conn)
+        
+        if dfCek['textClean'].count() == 0:
+            conn.execute("insert into tbl_textClean1 (textOri,textClean) values (?,?)",(old, new))
 
         conn.commit()
         conn.close()
@@ -143,7 +149,7 @@ def text_processing_file ():
 	    CASE WHEN textOri = textClean then 'Kalimat ada character selain angka dan huruf' END as Label,
 	    count(textOri) as varCount
     FROM
-	    tbl_textClean
+	    tbl_textClean1
     WHERE
 	    textOri = textClean
 
@@ -153,7 +159,7 @@ def text_processing_file ():
 	    CASE WHEN textOri != textClean then 'Kalimat tidak ada character selain angka dan huruf' END as Label,
 	    count(textClean) as varCount1
     FROM
-	    tbl_textClean
+	    tbl_textClean1
     WHERE
 	    textOri != textClean
     """            
@@ -174,8 +180,6 @@ def text_processing_file ():
     new_df_from_db['label'] = list_row_col_a
     new_df_from_db['varCount'] = list_row_col_b
 
-    
-
     fig = plt.figure(figsize=(15,5))
     ax=sns.barplot(data=new_df_from_db,x=new_df_from_db.varCount,y=new_df_from_db['label'])
 
@@ -191,6 +195,3 @@ def text_processing_file ():
 
 if __name__ == '__main__':
     app.run()
-
-
-
