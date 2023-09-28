@@ -1,0 +1,19 @@
+tags:
+  - name : Upload data
+get:
+  summary: Uploads a file.
+consumes:
+  - multipart/form-data
+parameters:
+  - name: file
+    in: formData
+    description: File yg di upload
+    required: true
+    type: file         
+responses:
+  '200':
+    description: Successful Responses
+  '400':
+    description: Bad Request
+  '500':
+    description: Internal Server Error
